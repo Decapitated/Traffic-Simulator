@@ -295,7 +295,7 @@ namespace PathCreation {
         }
 
         /// Calculate time data for closest point on the path from given world point
-        public TimeOnPathData CalculateClosestPointOnPathData (Vector3 worldPoint) {
+        TimeOnPathData CalculateClosestPointOnPathData (Vector3 worldPoint) {
             float minSqrDst = float.MaxValue;
             Vector3 closestPoint = Vector3.zero;
             int closestSegmentIndexA = 0;
