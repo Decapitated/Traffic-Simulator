@@ -35,6 +35,11 @@ public class ExampleCar : MonoBehaviour
             {
                 float brake = maxBreak * Mathf.Log(viewDistance / vehicle.GetVehicleDistance(hit.transform));
                 vehicle.Brake(brake);
+                if ((hit.transform.position - transform.position).magnitude > vehicle.GetVehicleDistance(hit.transform) + 3f)
+                {
+                    Debug.Log("Weird distance...");
+                    Time.timeScale = 0;
+                }
                 Debug.Log($"Brake: {brake} Distance: {(hit.transform.position - transform.position).magnitude} Path Distance: {vehicle.GetVehicleDistance(hit.transform)}");
             }
         }
