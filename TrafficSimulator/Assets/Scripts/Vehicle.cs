@@ -11,11 +11,11 @@ public class Vehicle : MonoBehaviour
 {
     [SerializeField]
     private PathCreator[] lanePathCreators = new PathCreator[0];
-    // average maximum m/s/s
+    // approximate real life maximum acceleration, m/s/s
     [SerializeField]
     [Range(0, 12.75f)]
     private float maxAcceleration = 5.25f;
-    // average maximum breaking force, m/s/s
+    // approximate real life maximum breaking force, m/s/s
     [SerializeField]
     [Range(-37.75f, 0)]
     private float maxDeceleration = -6f;
@@ -26,7 +26,7 @@ public class Vehicle : MonoBehaviour
     [SerializeField]
     private float visibility = 50f;
     [SerializeField]
-    private float viewResolution = 100f;
+    private float viewResolution = 25f;
     [SerializeField]
     private float laneWidth = 3.5f;
     [SerializeField]
@@ -95,7 +95,7 @@ public class Vehicle : MonoBehaviour
         return (lane >= lanePathCreators.Length) || (lanePathCreators[lane] == null);
     }
 
-    protected VertexPath CurrentPath()
+    private VertexPath CurrentPath()
     {
         if (LaneNullCheck(lane))
         {
@@ -257,7 +257,7 @@ public class Vehicle : MonoBehaviour
         }
     }
 
-    void OnDrawGizmosSelected()
+    private void OnDrawGizmosSelected()
     {
         if (visualizeVision)
         {
