@@ -20,7 +20,7 @@ public class ExampleAI : Vehicle
         {
             PedalToTheMetal();
         }
-        LookBehind();
+
         // Check if car is in front
         List<float>[] carsAhead =  LookAhead();
         if (carsAhead[Lane()].Count > 0)

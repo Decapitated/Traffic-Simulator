@@ -44,25 +44,25 @@ public class Vehicle : MonoBehaviour
 
     protected void Start()
     {
-        if ((lanePaths.Length > lane) && getCurrentPath() != null)
+        if ((lanePaths.Length > lane) && CurrentPath() != null)
         {
-            distanceTraveled = getCurrentPath().path.GetClosestDistanceAlongPath(transform.position);
-            Vector3 tempP = getCurrentPath().path.GetPointAtDistance(distanceTraveled, EndOfPathInstruction.Loop);
+            distanceTraveled = CurrentPath().GetClosestDistanceAlongPath(transform.position);
+            Vector3 tempP = CurrentPath().GetPointAtDistance(distanceTraveled, EndOfPathInstruction.Loop);
             transform.position = tempP;
         }
     }
 
     protected void Update()
     {
-        if ((lanePaths.Length > lane) && getCurrentPath() != null)
+        if ((lanePaths.Length > lane) && CurrentPath() != null)
         {
             speed += acceleration * Time.deltaTime;
             distanceTraveled += speed * Time.deltaTime;
 
-            Vector3 tempP = getCurrentPath().path.GetPointAtDistance(distanceTraveled, EndOfPathInstruction.Loop);
+            Vector3 tempP = CurrentPath().GetPointAtDistance(distanceTraveled, EndOfPathInstruction.Loop);
             transform.position = tempP;
 
-            Quaternion tempR = getCurrentPath().path.GetRotationAtDistance(distanceTraveled, EndOfPathInstruction.Loop);
+            Quaternion tempR = CurrentPath().GetRotationAtDistance(distanceTraveled, EndOfPathInstruction.Loop);
             transform.rotation = tempR;
             transform.Rotate(new Vector3(0, 0, 90));
         }
@@ -72,10 +72,20 @@ public class Vehicle : MonoBehaviour
     {
         if (isLeft && lane > 0) lane--;
         else if (!isLeft && lane < lanePaths.Length - 1) lane++;
-        distanceTraveled = getCurrentPath().path.GetClosestDistanceAlongPath(transform.position);
+        distanceTraveled = CurrentPath().GetClosestDistanceAlongPath(transform.position);
     }
 
-    protected PathCreator getCurrentPath() { return lanePaths[lane]; }
+    protected VertexPath CurrentPath()
+    {
+        if (lanePaths[lane] == null)
+        {
+            return null;
+        }
+        else
+        {
+            return lanePaths[lane].path;
+        }
+    }
     protected PathCreator[] LanePaths() { return lanePaths; }
     protected int Weight() { return weight; }
     protected float MaxAcceleration() { return maxAcceleration; }
@@ -93,10 +103,10 @@ public class Vehicle : MonoBehaviour
 
     protected float GetVehicleDistance(Transform target)
     {
-        float targetDist = getCurrentPath().path.GetClosestDistanceAlongPath(target.position);
-        float thisDist = getCurrentPath().path.GetClosestDistanceAlongPath(transform.position);
+        float targetDist = CurrentPath().GetClosestDistanceAlongPath(target.position);
+        float thisDist = CurrentPath().GetClosestDistanceAlongPath(transform.position);
 
-        if (targetDist < thisDist) targetDist += getCurrentPath().path.length;
+        if (targetDist < thisDist) targetDist += CurrentPath().length;
 
         return targetDist - thisDist;
     }
@@ -130,7 +140,7 @@ public class Vehicle : MonoBehaviour
                 }
                 else
                 {
-                    float distance = getCurrentPath().path.length - currentDistance + vehicleDistance;
+                    float distance = CurrentPath().length - currentDistance + vehicleDistance;
                     distances[vehicle.lane].Add(distance);
                 }
             }
@@ -173,7 +183,7 @@ public class Vehicle : MonoBehaviour
                 }
                 else
                 {
-                    float distance = getCurrentPath().path.length - vehicleDistance + currentDistance;
+                    float distance = CurrentPath().length - vehicleDistance + currentDistance;
                     distances[vehicle.lane].Add(distance);
                 }
             }
