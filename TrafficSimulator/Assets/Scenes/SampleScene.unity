@@ -727,9 +727,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 710745126}
-  - component: {fileID: 710745123}
-  - component: {fileID: 710745127}
   - component: {fileID: 710745125}
+  - component: {fileID: 710745123}
   m_Layer: 8
   m_Name: Rear Car
   m_TagString: Untagged
@@ -746,13 +745,26 @@ MonoBehaviour:
   m_GameObject: {fileID: 710745122}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 33aabe1a2dec93349b06e6e5dc51bc06, type: 3}
+  m_Script: {fileID: 11500000, guid: 092b28b2719745947bbadb1356985ec8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pathCreator: {fileID: 0}
-  endOfPathInstruction: 0
-  speed: 5
-  offset: 0.5
+  lanePaths:
+  - {fileID: 482679295}
+  - {fileID: 1998259444}
+  weight: 1300
+  maxAcceleration: 5.25
+  maxDeceleration: -6
+  lookAheadAngle: 170
+  lookBehindAngle: 100
+  visibility: 50
+  viewResolution: 20
+  laneWidth: 3.5
+  lane: 0
+  distanceTraveled: 0
+  acceleration: 0
+  speed: 0
+  visualizeVision: 0
+  speedLimit: 35
 --- !u!54 &710745125
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -784,40 +796,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: -90, z: 0}
---- !u!114 &710745127
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 710745122}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3399ef9cb8522c549a660a838b9b2ea0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  lanePaths:
-  - {fileID: 482679295}
-  - {fileID: 1998259444}
-  weight: 1300
-  maxAcceleration: 5.25
-  maxDeceleration: -6
-  lookAheadAngle: 170
-  lookBehindAngle: 100
-  viewDistance: 15
-  viewResolution: 100
-  laneWidth: 3.5
-  lane: 0
-  distanceTraveled: 0
-  acceleration: 0
-  speed: 0
-  visualizeVision: 1
-  fieldOfView: 45
-  criticalDistance: 5
-  viewDistance: 15
-  speedLimit: 20
-  maxBreak: 20
-  userControl: 1
 --- !u!1001 &1115036080
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1008,9 +986,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1418490334}
-  - component: {fileID: 1418490331}
   - component: {fileID: 1418490333}
-  - component: {fileID: 1418490332}
+  - component: {fileID: 1418490331}
   m_Layer: 8
   m_Name: Front Car
   m_TagString: Untagged
@@ -1027,23 +1004,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1418490330}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 33aabe1a2dec93349b06e6e5dc51bc06, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  pathCreator: {fileID: 0}
-  endOfPathInstruction: 0
-  speed: 5
-  offset: 0.5
---- !u!114 &1418490332
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1418490330}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 092b28b2719745947bbadb1356985ec8, type: 3}
+  m_Script: {fileID: 11500000, guid: 3399ef9cb8522c549a660a838b9b2ea0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   lanePaths:
@@ -1054,15 +1015,20 @@ MonoBehaviour:
   maxDeceleration: -6
   lookAheadAngle: 170
   lookBehindAngle: 100
-  viewDistance: 30
-  viewResolution: 100
+  visibility: 30
+  viewResolution: 20
   laneWidth: 3.5
   lane: 0
   distanceTraveled: 0
   acceleration: 0
   speed: 0
-  visualizeVision: 1
-  speedLimit: 35
+  visualizeVision: 0
+  fieldOfView: 45
+  criticalDistance: 5
+  viewDistance: 20
+  speedLimit: 20
+  maxBreak: 20
+  userControl: 0
 --- !u!54 &1418490333
 Rigidbody:
   m_ObjectHideFlags: 0

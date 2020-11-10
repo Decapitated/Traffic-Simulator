@@ -5,7 +5,6 @@ using PathCreation.Examples;
 using PathCreation;
 using System;
 
-[RequireComponent(typeof(PathFollower))]
 public class Vehicle : MonoBehaviour
 {
     [SerializeField]
@@ -26,7 +25,7 @@ public class Vehicle : MonoBehaviour
     [SerializeField]
     private float lookBehindAngle = 100f;
     [SerializeField]
-    private float viewDistance = 30f;
+    private float visibility = 50f;
     [SerializeField]
     private float viewResolution = 100f;
     [SerializeField]
@@ -83,7 +82,7 @@ public class Vehicle : MonoBehaviour
     protected float MaxDeceleration() { return maxDeceleration; }
     protected float LookAheadAngle() { return lookAheadAngle; }
     protected float LookBehindAngle() { return lookBehindAngle; }
-    protected float ViewDistance() { return viewDistance; }
+    protected float Visibility() { return visibility; }
     public int Lane() { return lane; }
     protected float DistanceTraveled() { return distanceTraveled; }
     protected float Acceleration() { return acceleration; }
@@ -112,14 +111,14 @@ public class Vehicle : MonoBehaviour
             distances[i] = new List<float>();
         }
 
-        for (float i = -(lookAheadAngle / 2); i <= (lookAheadAngle / 2); i += (lookAheadAngle / viewResolution) + 1)
+        for (float i = -(lookAheadAngle / 2); i <= (lookAheadAngle / 2); i += lookAheadAngle / (viewResolution + 1))
         {
             Quaternion rotation = Quaternion.AngleAxis(i, transform.up);
             Vector3 direction = rotation * transform.forward;
             RaycastHit hit;
             Vehicle vehicle;
-            if (Physics.Raycast(transform.position, direction, out hit, viewDistance, LayerMask.GetMask("Car")) &&
-                (vehicle = hit.collider.gameObject.GetComponent<Vehicle>()) != null
+            if (Physics.Raycast(transform.position, direction, out hit, visibility, LayerMask.GetMask("Car")) &&
+                (vehicle = hit.collider.gameObject.GetComponentInParent<Vehicle>()) != null
             )
             {
                 float currentDistance = lanePaths[vehicle.lane].path.GetClosestDistanceAlongPath(transform.position);
@@ -150,17 +149,21 @@ public class Vehicle : MonoBehaviour
     protected List<float>[] LookBehind()
     {
         List<float>[] distances = new List<float>[lanePaths.Length];
-
-        for (float i = -(lookBehindAngle / 2); i <= (lookBehindAngle / 2); i += (lookBehindAngle / viewResolution) + 1)
+        for (int i = 0; i < lanePaths.Length; i++)
         {
-            Quaternion rotation = Quaternion.AngleAxis(i, transform.up);
+            distances[i] = new List<float>();
+        }
+
+        for (float i = -(lookBehindAngle / 2); i <= (lookBehindAngle / 2); i += lookBehindAngle / (viewResolution + 1))
+        {
+            Quaternion rotation = Quaternion.AngleAxis(i + 180, transform.up);
             Vector3 direction = rotation * transform.forward;
             RaycastHit hit;
             Vehicle vehicle;
-            if (Physics.Raycast(transform.position, direction, out hit, viewDistance, LayerMask.GetMask("Car"))
+            if (Physics.Raycast(transform.position, direction, out hit, visibility, LayerMask.GetMask("Car")) && 
+                (vehicle = hit.collider.gameObject.GetComponentInParent<Vehicle>()) != null
             )
             {
-                vehicle = hit.collider.gameObject.GetComponent<Vehicle>();
                 float currentDistance = lanePaths[vehicle.lane].path.GetClosestDistanceAlongPath(transform.position);
                 float vehicleDistance = lanePaths[vehicle.lane].path.GetClosestDistanceAlongPath(hit.transform.position);
                 if (currentDistance >= vehicleDistance)
@@ -251,7 +254,7 @@ public class Vehicle : MonoBehaviour
             {
                 Quaternion rotation = Quaternion.AngleAxis(i, transform.up);
                 Vector3 ray = rotation * transform.forward;
-                Debug.DrawLine(transform.position, transform.position + ray * viewDistance, Color.red);
+                Debug.DrawLine(transform.position, transform.position + ray * visibility, Color.red);
             }
 
             // Back vision
@@ -259,7 +262,7 @@ public class Vehicle : MonoBehaviour
             {
                 Quaternion rotation = Quaternion.AngleAxis(i + 180, transform.up);
                 Vector3 ray = rotation * transform.forward;
-                Debug.DrawLine(transform.position, transform.position + ray * viewDistance, Color.blue);
+                Debug.DrawLine(transform.position, transform.position + ray * visibility, Color.blue);
             }
 
             // lanePaths vision

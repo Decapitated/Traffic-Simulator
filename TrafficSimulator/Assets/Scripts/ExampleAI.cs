@@ -25,7 +25,7 @@ public class ExampleAI : Vehicle
         List<float>[] carsAhead =  LookAhead();
         if (carsAhead[Lane()].Count > 0)
         {
-            float brake = MaxDeceleration() * Mathf.Log(ViewDistance() / carsAhead[Lane()][0]);
+            float brake = MaxDeceleration() * Mathf.Log(Visibility() / carsAhead[Lane()][0]);
             Acceleration(brake);
         }
     }
