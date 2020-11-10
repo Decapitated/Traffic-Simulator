@@ -5,13 +5,12 @@ using PathCreation.Examples;
 using PathCreation;
 using System;
 
+[RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(Collider))]
 public class Vehicle : MonoBehaviour
 {
     [SerializeField]
-    private PathCreator[] lanePaths = null;
-    // kg
-    [SerializeField]
-    private int weight = 1300;
+    private PathCreator[] lanePathCreators = new PathCreator[0];
     // average maximum m/s/s
     [SerializeField]
     [Range(0, 12.75f)]
@@ -41,53 +40,7 @@ public class Vehicle : MonoBehaviour
     [SerializeField]
     private bool visualizeVision = true;
 
-
-    protected void Start()
-    {
-        if ((lanePaths.Length > lane) && CurrentPath() != null)
-        {
-            distanceTraveled = CurrentPath().GetClosestDistanceAlongPath(transform.position);
-            Vector3 tempP = CurrentPath().GetPointAtDistance(distanceTraveled, EndOfPathInstruction.Loop);
-            transform.position = tempP;
-        }
-    }
-
-    protected void Update()
-    {
-        if ((lanePaths.Length > lane) && CurrentPath() != null)
-        {
-            speed += acceleration * Time.deltaTime;
-            distanceTraveled += speed * Time.deltaTime;
-
-            Vector3 tempP = CurrentPath().GetPointAtDistance(distanceTraveled, EndOfPathInstruction.Loop);
-            transform.position = tempP;
-
-            Quaternion tempR = CurrentPath().GetRotationAtDistance(distanceTraveled, EndOfPathInstruction.Loop);
-            transform.rotation = tempR;
-            transform.Rotate(new Vector3(0, 0, 90));
-        }
-    }
-
-    protected void SwitchLane(bool isLeft)
-    {
-        if (isLeft && lane > 0) lane--;
-        else if (!isLeft && lane < lanePaths.Length - 1) lane++;
-        distanceTraveled = CurrentPath().GetClosestDistanceAlongPath(transform.position);
-    }
-
-    protected VertexPath CurrentPath()
-    {
-        if (lanePaths[lane] == null)
-        {
-            return null;
-        }
-        else
-        {
-            return lanePaths[lane].path;
-        }
-    }
-    protected PathCreator[] LanePaths() { return lanePaths; }
-    protected int Weight() { return weight; }
+    protected PathCreator[] LanePathCreators() { return lanePathCreators; }
     protected float MaxAcceleration() { return maxAcceleration; }
     protected float MaxDeceleration() { return maxDeceleration; }
     protected float LookAheadAngle() { return lookAheadAngle; }
@@ -97,9 +50,78 @@ public class Vehicle : MonoBehaviour
     protected float DistanceTraveled() { return distanceTraveled; }
     protected float Acceleration() { return acceleration; }
     protected void Acceleration(float newAcceleration) { acceleration = Mathf.Clamp(newAcceleration, maxDeceleration, maxAcceleration); }
-    protected void PedalToTheMetal() { acceleration = maxAcceleration; }
-    protected void HitTheBrakes() { acceleration = maxDeceleration; }
     protected float Speed() { return speed; }
+
+    protected void Start()
+    {
+        if (!LaneNullCheck(lane))
+        {
+            distanceTraveled = CurrentPath().GetClosestDistanceAlongPath(transform.position);
+            UpdateTransform();
+        }
+    }
+
+    protected void Update()
+    {
+        speed += acceleration * Time.deltaTime;
+        distanceTraveled += speed * Time.deltaTime;
+        UpdateTransform();
+    }
+
+    private void UpdateTransform()
+    {
+        if (!LaneNullCheck(lane))
+        {
+            Vector3 tempP = CurrentPath().GetPointAtDistance(distanceTraveled, EndOfPathInstruction.Loop);
+            transform.position = tempP;
+
+            Quaternion tempR = CurrentPath().GetRotationAtDistance(distanceTraveled, EndOfPathInstruction.Loop);
+            transform.rotation = tempR;
+            // Rotation aligns "Up" with normals of road
+            // normals are within the plane of the road
+            transform.Rotate(new Vector3(0, 0, 90));
+        }
+    }
+
+    protected void SwitchLane(bool isLeft)
+    {
+        if (isLeft && lane > 0) lane--;
+        else if (!isLeft && lane < lanePathCreators.Length - 1) lane++;
+        distanceTraveled = CurrentPath().GetClosestDistanceAlongPath(transform.position);
+    }
+
+    private bool LaneNullCheck(int lane)
+    {
+        return (lane >= lanePathCreators.Length) || (lanePathCreators[lane] == null);
+    }
+
+    protected VertexPath CurrentPath()
+    {
+        if (LaneNullCheck(lane))
+        {
+            return null;
+        }
+        else
+        {
+            return lanePathCreators[lane].path;
+        }
+    }
+
+    protected void HitTheBrakes()
+    {
+        if (speed < 0)
+        {
+            acceleration = maxAcceleration;
+        }
+        else if (speed > 0)
+        {
+            acceleration = maxDeceleration;
+        }
+        else
+        {
+            acceleration = 0;
+        }
+    }
 
     protected float GetVehicleDistance(Transform target)
     {
@@ -111,147 +133,127 @@ public class Vehicle : MonoBehaviour
         return targetDist - thisDist;
     }
 
-    // Return array of lanePaths information
-    // Lane information is distances to visible cars
-    protected List<float>[] LookAhead()
+    protected List<float> VehicleDistancesAhead(int lane)
     {
-        List<float>[] distances = new List<float>[lanePaths.Length];
-        for (int i = 0; i < lanePaths.Length; i++)
+        if (LaneNullCheck(lane))
         {
-            distances[i] = new List<float>();
+            return null;
         }
+
+        List<float> distances = new List<float>();
 
         for (float i = -(lookAheadAngle / 2); i <= (lookAheadAngle / 2); i += lookAheadAngle / (viewResolution + 1))
         {
             Quaternion rotation = Quaternion.AngleAxis(i, transform.up);
             Vector3 direction = rotation * transform.forward;
             RaycastHit hit;
-            Vehicle vehicle;
+            Vehicle hitVehicle;
             if (Physics.Raycast(transform.position, direction, out hit, visibility, LayerMask.GetMask("Car")) &&
-                (vehicle = hit.collider.gameObject.GetComponentInParent<Vehicle>()) != null
+                ((hitVehicle = hit.collider.gameObject.GetComponentInParent<Vehicle>()) != null) &&
+                (hitVehicle.lane == lane)
             )
             {
-                float currentDistance = lanePaths[vehicle.lane].path.GetClosestDistanceAlongPath(transform.position);
-                float vehicleDistance = lanePaths[vehicle.lane].path.GetClosestDistanceAlongPath(hit.transform.position);
-                if (vehicleDistance >= currentDistance)
+                float currentDistance = lanePathCreators[lane].path.GetClosestDistanceAlongPath(transform.position);
+                float hitVehicleDistance = lanePathCreators[lane].path.GetClosestDistanceAlongPath(hit.transform.position);
+                if (hitVehicleDistance >= currentDistance)
                 {
-                    float distance = vehicleDistance - currentDistance;
-                    distances[vehicle.lane].Add(distance);
+                    float distance = hitVehicleDistance - currentDistance;
+                    distances.Add(distance);
                 }
                 else
                 {
-                    float distance = CurrentPath().length - currentDistance + vehicleDistance;
-                    distances[vehicle.lane].Add(distance);
+                    float distance = CurrentPath().length - currentDistance + hitVehicleDistance;
+                    distances.Add(distance);
                 }
             }
         }
 
-        for (int i = 0; i < lanePaths.Length; i++)
-        {
-            distances[i].Sort();
-        }
-
+        distances.Sort();
         return distances;
     }
 
-    // Return array of lanePaths information
-    // Lane information is distances to visible cars
-    protected List<float>[] LookBehind()
+    protected List<float> VehicleDistancesBehind(int lane)
     {
-        List<float>[] distances = new List<float>[lanePaths.Length];
-        for (int i = 0; i < lanePaths.Length; i++)
+        if (LaneNullCheck(lane))
         {
-            distances[i] = new List<float>();
+            return null;
         }
+
+        List<float> distances = new List<float>();
 
         for (float i = -(lookBehindAngle / 2); i <= (lookBehindAngle / 2); i += lookBehindAngle / (viewResolution + 1))
         {
             Quaternion rotation = Quaternion.AngleAxis(i + 180, transform.up);
             Vector3 direction = rotation * transform.forward;
             RaycastHit hit;
-            Vehicle vehicle;
+            Vehicle hitVehicle;
             if (Physics.Raycast(transform.position, direction, out hit, visibility, LayerMask.GetMask("Car")) && 
-                (vehicle = hit.collider.gameObject.GetComponentInParent<Vehicle>()) != null
+                ((hitVehicle = hit.collider.gameObject.GetComponentInParent<Vehicle>()) != null) &&
+                (hitVehicle.lane == lane)
             )
             {
-                float currentDistance = lanePaths[vehicle.lane].path.GetClosestDistanceAlongPath(transform.position);
-                float vehicleDistance = lanePaths[vehicle.lane].path.GetClosestDistanceAlongPath(hit.transform.position);
-                if (currentDistance >= vehicleDistance)
+                float currentDistance = lanePathCreators[lane].path.GetClosestDistanceAlongPath(transform.position);
+                float hitVehicleDistance = lanePathCreators[lane].path.GetClosestDistanceAlongPath(hit.transform.position);
+                if (currentDistance >= hitVehicleDistance)
                 {
-                    float distance = currentDistance - vehicleDistance;
-                    distances[vehicle.lane].Add(distance);
+                    float distance = currentDistance - hitVehicleDistance;
+                    distances.Add(distance);
                 }
                 else
                 {
-                    float distance = CurrentPath().length - vehicleDistance + currentDistance;
-                    distances[vehicle.lane].Add(distance);
+                    float distance = CurrentPath().length - hitVehicleDistance + currentDistance;
+                    distances.Add(distance);
                 }
             }
         }
 
-        for (int i = 0; i < lanePaths.Length; i++)
-        {
-            distances[i].Sort();
-        }
-
+        distances.Sort();
         return distances;
     }
 
     protected bool CanTurnLeft()
     {
         BoxCollider boxCollider = GetComponentInChildren<BoxCollider>();
-        if (boxCollider == null)
+        Quaternion aboutFace = Quaternion.AngleAxis(180, transform.up);
+
+        Vector3 front = boxCollider.bounds.ClosestPoint(transform.position + transform.forward);
+        Vector3 back = boxCollider.bounds.ClosestPoint(transform.position + (aboutFace * transform.forward));
+        Vector3 middle = transform.position;
+        Vector3 left = Vector3.Cross(front - transform.position, Vector3.up);
+        if (
+            Physics.Raycast(front, left, laneWidth, LayerMask.GetMask("Car")) ||
+            Physics.Raycast(back, left, laneWidth, LayerMask.GetMask("Car")) ||
+            Physics.Raycast(middle, left, laneWidth, LayerMask.GetMask("Car"))
+            )
         {
-            Debug.LogError("Cannot Lane check, box collider not found");
             return false;
         }
         else
         {
-            Vector3 front = boxCollider.bounds.ClosestPoint(transform.position + transform.forward);
-            Quaternion aboutFace = Quaternion.AngleAxis(180, transform.up);
-            Vector3 back = boxCollider.bounds.ClosestPoint(transform.position + (aboutFace * transform.forward));
-            Vector3 direction = Vector3.Cross(front - transform.position, Vector3.up);
-            if (
-                Physics.Raycast(front, direction, laneWidth, LayerMask.GetMask("Car")) ||
-                Physics.Raycast(back, direction, laneWidth, LayerMask.GetMask("Car")) ||
-                Physics.Raycast(transform.position, direction, laneWidth, LayerMask.GetMask("Car"))
-                )
-            {
-                return false;
-            }
-            else
-            {
-                return true;
-            }
+            return true;
         }
     }
 
     protected bool CanTurnRight()
     {
         BoxCollider boxCollider = GetComponentInChildren<BoxCollider>();
-        if (boxCollider == null)
+        Quaternion aboutFace = Quaternion.AngleAxis(180, transform.up);
+
+        Vector3 front = boxCollider.bounds.ClosestPoint(transform.position + transform.forward);
+        Vector3 back = boxCollider.bounds.ClosestPoint(transform.position + (aboutFace * transform.forward));
+        Vector3 middle = transform.position;
+        Vector3 right = Vector3.Cross(-(front - transform.position), Vector3.up);
+        if (
+            Physics.Raycast(front, right, laneWidth, LayerMask.GetMask("Car")) ||
+            Physics.Raycast(back, right, laneWidth, LayerMask.GetMask("Car")) ||
+            Physics.Raycast(middle, right, laneWidth, LayerMask.GetMask("Car"))
+            )
         {
-            Debug.LogError("Cannot Lane check, box collider not found");
             return false;
         }
         else
         {
-            Vector3 front = boxCollider.bounds.ClosestPoint(transform.position + transform.forward);
-            Quaternion aboutFace = Quaternion.AngleAxis(180, transform.up);
-            Vector3 back = boxCollider.bounds.ClosestPoint(transform.position + (aboutFace * transform.forward));
-            Vector3 direction = Vector3.Cross(-(front - transform.position), Vector3.up);
-            if (
-                Physics.Raycast(front, direction, laneWidth, LayerMask.GetMask("Car")) ||
-                Physics.Raycast(back, direction, laneWidth, LayerMask.GetMask("Car")) ||
-                Physics.Raycast(transform.position, direction, laneWidth, LayerMask.GetMask("Car"))
-                )
-            {
-                return false;
-            }
-            else
-            {
-                return true;
-            }
+            return true;
         }
     }
 
@@ -275,26 +277,25 @@ public class Vehicle : MonoBehaviour
                 Debug.DrawLine(transform.position, transform.position + ray * visibility, Color.blue);
             }
 
-            // lanePaths vision
             BoxCollider boxCollider = GetComponentInChildren<BoxCollider>();
-            if (boxCollider != null)
-            {
-                Vector3 front = boxCollider.bounds.ClosestPoint(transform.position + transform.forward);
-                Quaternion aboutFace = Quaternion.AngleAxis(180, transform.up);
-                Vector3 back = boxCollider.bounds.ClosestPoint(transform.position + (aboutFace * transform.forward));
-                Vector3 leftDirection = Vector3.Cross(front - transform.position, Vector3.up);
-                Vector3 rightDirection = Vector3.Cross(-(front - transform.position), Vector3.up);
+            Quaternion aboutFace = Quaternion.AngleAxis(180, transform.up);
 
-                // Right lane
-                Debug.DrawLine(front, front + laneWidth * rightDirection, Color.yellow);
-                Debug.DrawLine(back, back + laneWidth * rightDirection, Color.yellow);
-                Debug.DrawLine(transform.position, transform.position + laneWidth * rightDirection, Color.yellow);
+            Vector3 front = boxCollider.bounds.ClosestPoint(transform.position + transform.forward);
+            Vector3 back = boxCollider.bounds.ClosestPoint(transform.position + (aboutFace * transform.forward));
+            Vector3 middle = transform.position;
 
-                // Left lane
-                Debug.DrawLine(front, front + laneWidth * leftDirection, Color.yellow);
-                Debug.DrawLine(back, back + laneWidth * leftDirection, Color.yellow);
-                Debug.DrawLine(transform.position, transform.position + laneWidth * leftDirection, Color.yellow);
-            }
+            Vector3 left = Vector3.Cross(front - transform.position, Vector3.up);
+            Vector3 right = Vector3.Cross(-(front - transform.position), Vector3.up);
+
+            // Right lane vision
+            Debug.DrawLine(front, front + (laneWidth * right), Color.yellow);
+            Debug.DrawLine(back, back + (laneWidth * right), Color.yellow);
+            Debug.DrawLine(middle, middle + (laneWidth * right), Color.yellow);
+
+            // Left lane vision
+            Debug.DrawLine(front, front + laneWidth * left, Color.yellow);
+            Debug.DrawLine(back, back + laneWidth * left, Color.yellow);
+            Debug.DrawLine(middle, middle + laneWidth * left, Color.yellow);
         }
     }
 }

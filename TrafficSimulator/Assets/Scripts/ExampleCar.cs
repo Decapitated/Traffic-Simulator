@@ -45,7 +45,7 @@ public class ExampleCar : Vehicle
         }
         else if (Speed() < speedLimit)
         {
-            PedalToTheMetal();
+            Acceleration(MaxAcceleration());
         }
 
         if (Input.GetKeyDown(KeyCode.LeftArrow) && userControl)
