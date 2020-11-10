@@ -2,8 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(Vehicle))]
-public class ExampleCar : MonoBehaviour
+public class ExampleCar : Vehicle
 {
     public int fieldOfView = 45;
     public float criticalDistance = 5f;
@@ -12,16 +11,11 @@ public class ExampleCar : MonoBehaviour
     public float maxBreak = 20f;
     public bool userControl = false;
 
-    Vehicle vehicle;
-
-    void Awake()
-    {
-        vehicle = GetComponent<Vehicle>();
-    }
-
     // Update is called once per frame
-    void Update()
+    new void Update()
     {
+        base.Update();
+
         // Check if car is in front
         RaycastHit hit;
         if (Physics.SphereCast(transform.position, viewDistance / 2, transform.forward, out hit, viewDistance / 2))
@@ -31,36 +25,36 @@ public class ExampleCar : MonoBehaviour
             float degree = Mathf.Acos(angle) * Mathf.Rad2Deg;
 
             // We can see them
-            if (hit.transform.GetComponent<Vehicle>().lane == vehicle.lane && (degree >= -fieldOfView || degree <= fieldOfView))
+            if (hit.transform.GetComponent<Vehicle>().Lane() == Lane() && (degree >= -fieldOfView || degree <= fieldOfView))
             {
-                float brake = maxBreak * Mathf.Log(viewDistance / vehicle.GetVehicleDistance(hit.transform));
-                vehicle.Brake(brake);
-                if ((hit.transform.position - transform.position).magnitude > vehicle.GetVehicleDistance(hit.transform) + 3f)
+                float brake = MaxDeceleration() * Mathf.Log(viewDistance / GetVehicleDistance(hit.transform));
+                Acceleration(brake);
+                if ((hit.transform.position - transform.position).magnitude > GetVehicleDistance(hit.transform) + 3f)
                 {
                     Debug.Log("Weird distance...");
                     Time.timeScale = 0;
                 }
-                Debug.Log($"Brake: {brake} Distance: {(hit.transform.position - transform.position).magnitude} Path Distance: {vehicle.GetVehicleDistance(hit.transform)}");
+                Debug.Log($"Brake: {brake} Distance: {(hit.transform.position - transform.position).magnitude} Path Distance: {GetVehicleDistance(hit.transform)}");
             }
         }
 
         // Accelerate if below speed limit else cap at speed limit
-        if (vehicle.pf.speed > speedLimit)
+        if (Speed() > speedLimit)
         {
-            vehicle.pf.speed = speedLimit;
+            HitTheBrakes();
         }
-        else if (vehicle.pf.speed < speedLimit)
+        else if (Speed() < speedLimit)
         {
-            vehicle.Accelerate(2);
+            PedalToTheMetal();
         }
 
         if (Input.GetKeyDown(KeyCode.LeftArrow) && userControl)
         {
-            vehicle.switchLane(true);
+            SwitchLane(true);
         }
         else if (Input.GetKeyDown(KeyCode.RightArrow) && userControl)
         {
-            vehicle.switchLane(false);
+            SwitchLane(false);
         }
     }
 

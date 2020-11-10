@@ -8,87 +8,109 @@ using System;
 [RequireComponent(typeof(PathFollower))]
 public class Vehicle : MonoBehaviour
 {
-    public PathCreator[] lanes;
-    public int weightKg = 1300;
-    // average maximum m/s/s
-    public float maxAcceleration = 5.25f;
-    // average maximum breaking force, m/s/s
-    public float maxDeceleration = 6f;
-    public float lookAheadAngle = 170f;
-    public float lookBehindAngle = 100f;
-    public float viewDistance = 30f;
-    public float viewResolution = 100f; 
-    public float laneWidth = 3.5f;
-    public int lane = 0;
-    public float distanceTraveled { get; private set; }
-
-    private float _acceleration;
-    public float acceleration {
-        get { return _acceleration; }
-        set { _acceleration = Mathf.Clamp(value, maxDeceleration, maxAcceleration); }
-    }
     [SerializeField]
-    public float speed { get; private set; }
+    private PathCreator[] lanePaths = null;
+    // kg
+    [SerializeField]
+    private int weight = 1300;
+    // average maximum m/s/s
+    [SerializeField]
+    [Range(0, 12.75f)]
+    private float maxAcceleration = 5.25f;
+    // average maximum breaking force, m/s/s
+    [SerializeField]
+    [Range(-37.75f, 0)]
+    private float maxDeceleration = -6f;
+    [SerializeField]
+    private float lookAheadAngle = 170f;
+    [SerializeField]
+    private float lookBehindAngle = 100f;
+    [SerializeField]
+    private float viewDistance = 30f;
+    [SerializeField]
+    private float viewResolution = 100f;
+    [SerializeField]
+    private float laneWidth = 3.5f;
+    [SerializeField]
+    private int lane = 0;
+    [SerializeField]
+    public float distanceTraveled = 0;
+    [SerializeField]
+    private float acceleration = 0;
+    [SerializeField]
+    private float speed = 0;
+    [SerializeField]
+    private bool visualizeVision = true;
 
 
-    void Start()
+    protected void Start()
     {
-        if ((lanes.Length > lane) && lanes[lane] != null)
+        if ((lanePaths.Length > lane) && getCurrentPath() != null)
         {
-            distanceTraveled = lanes[lane].path.GetClosestDistanceAlongPath(transform.position);
-            Vector3 tempP = lanes[lane].path.GetPointAtDistance(distanceTraveled, EndOfPathInstruction.Loop);
+            distanceTraveled = getCurrentPath().path.GetClosestDistanceAlongPath(transform.position);
+            Vector3 tempP = getCurrentPath().path.GetPointAtDistance(distanceTraveled, EndOfPathInstruction.Loop);
             transform.position = tempP;
         }
     }
 
-    void Update()
+    protected void Update()
     {
-        if ((lanes.Length > lane) && lanes[lane] != null)
+        if ((lanePaths.Length > lane) && getCurrentPath() != null)
         {
             speed += acceleration * Time.deltaTime;
             distanceTraveled += speed * Time.deltaTime;
 
-            Vector3 tempP = lanes[lane].path.GetPointAtDistance(distanceTraveled, EndOfPathInstruction.Loop);
+            Vector3 tempP = getCurrentPath().path.GetPointAtDistance(distanceTraveled, EndOfPathInstruction.Loop);
             transform.position = tempP;
 
-            Quaternion tempR = lanes[lane].path.GetRotationAtDistance(distanceTraveled, EndOfPathInstruction.Loop);
+            Quaternion tempR = getCurrentPath().path.GetRotationAtDistance(distanceTraveled, EndOfPathInstruction.Loop);
             transform.rotation = tempR;
             transform.Rotate(new Vector3(0, 0, 90));
         }
     }
 
-    public void SwitchLane(bool isLeft)
+    protected void SwitchLane(bool isLeft)
     {
         if (isLeft && lane > 0) lane--;
-        else if (!isLeft && lane < lanes.Length - 1) lane++;
-        distanceTraveled = lanes[lane].path.GetClosestDistanceAlongPath(transform.position);
+        else if (!isLeft && lane < lanePaths.Length - 1) lane++;
+        distanceTraveled = getCurrentPath().path.GetClosestDistanceAlongPath(transform.position);
     }
 
-    public void setMaxAcceleration()
-    {
-        acceleration = maxAcceleration;
-    }
+    protected PathCreator getCurrentPath() { return lanePaths[lane]; }
+    protected PathCreator[] LanePaths() { return lanePaths; }
+    protected int Weight() { return weight; }
+    protected float MaxAcceleration() { return maxAcceleration; }
+    protected float MaxDeceleration() { return maxDeceleration; }
+    protected float LookAheadAngle() { return lookAheadAngle; }
+    protected float LookBehindAngle() { return lookBehindAngle; }
+    protected float ViewDistance() { return viewDistance; }
+    public int Lane() { return lane; }
+    protected float DistanceTraveled() { return distanceTraveled; }
+    protected float Acceleration() { return acceleration; }
+    protected void Acceleration(float newAcceleration) { acceleration = Mathf.Clamp(newAcceleration, maxDeceleration, maxAcceleration); }
+    protected void PedalToTheMetal() { acceleration = maxAcceleration; }
+    protected void HitTheBrakes() { acceleration = maxDeceleration; }
+    protected float Speed() { return speed; }
 
-    public void setMaxDeceleration()
+    protected float GetVehicleDistance(Transform target)
     {
-        acceleration = maxDeceleration;
-    }
+        float targetDist = getCurrentPath().path.GetClosestDistanceAlongPath(target.position);
+        float thisDist = getCurrentPath().path.GetClosestDistanceAlongPath(transform.position);
 
-    public float GetVehicleDistance(Transform target)
-    {
-        float targetDist = lanes[lane].path.GetClosestDistanceAlongPath(target.position);
-        float thisDist = lanes[lane].path.GetClosestDistanceAlongPath(transform.position);
-
-        if (targetDist < thisDist) targetDist += lanes[lane].path.length;
+        if (targetDist < thisDist) targetDist += getCurrentPath().path.length;
 
         return targetDist - thisDist;
     }
 
-    // Return array of lanes information
+    // Return array of lanePaths information
     // Lane information is distances to visible cars
-    public List<float>[] LookAhead()
+    protected List<float>[] LookAhead()
     {
-        List<float>[] distances = new List<float>[lanes.Length];
+        List<float>[] distances = new List<float>[lanePaths.Length];
+        for (int i = 0; i < lanePaths.Length; i++)
+        {
+            distances[i] = new List<float>();
+        }
 
         for (float i = -(lookAheadAngle / 2); i <= (lookAheadAngle / 2); i += (lookAheadAngle / viewResolution) + 1)
         {
@@ -100,8 +122,8 @@ public class Vehicle : MonoBehaviour
                 (vehicle = hit.collider.gameObject.GetComponent<Vehicle>()) != null
             )
             {
-                float currentDistance = lanes[vehicle.lane].path.GetClosestDistanceAlongPath(transform.position);
-                float vehicleDistance = lanes[vehicle.lane].path.GetClosestDistanceAlongPath(hit.transform.position);
+                float currentDistance = lanePaths[vehicle.lane].path.GetClosestDistanceAlongPath(transform.position);
+                float vehicleDistance = lanePaths[vehicle.lane].path.GetClosestDistanceAlongPath(hit.transform.position);
                 if (vehicleDistance >= currentDistance)
                 {
                     float distance = vehicleDistance - currentDistance;
@@ -109,13 +131,13 @@ public class Vehicle : MonoBehaviour
                 }
                 else
                 {
-                    float distance = lanes[lane].path.length - currentDistance + vehicleDistance;
+                    float distance = getCurrentPath().path.length - currentDistance + vehicleDistance;
                     distances[vehicle.lane].Add(distance);
                 }
             }
         }
 
-        for (int i = 0; i < lanes.Length; i++)
+        for (int i = 0; i < lanePaths.Length; i++)
         {
             distances[i].Sort();
         }
@@ -123,11 +145,11 @@ public class Vehicle : MonoBehaviour
         return distances;
     }
 
-    // Return array of lanes information
+    // Return array of lanePaths information
     // Lane information is distances to visible cars
-    public List<float>[] LookBehind()
+    protected List<float>[] LookBehind()
     {
-        List<float>[] distances = new List<float>[lanes.Length];
+        List<float>[] distances = new List<float>[lanePaths.Length];
 
         for (float i = -(lookBehindAngle / 2); i <= (lookBehindAngle / 2); i += (lookBehindAngle / viewResolution) + 1)
         {
@@ -135,12 +157,12 @@ public class Vehicle : MonoBehaviour
             Vector3 direction = rotation * transform.forward;
             RaycastHit hit;
             Vehicle vehicle;
-            if (Physics.Raycast(transform.position, direction, out hit, viewDistance, LayerMask.GetMask("Car")) &&
-                (vehicle = hit.collider.gameObject.GetComponent<Vehicle>()) != null
+            if (Physics.Raycast(transform.position, direction, out hit, viewDistance, LayerMask.GetMask("Car"))
             )
             {
-                float currentDistance = lanes[vehicle.lane].path.GetClosestDistanceAlongPath(transform.position);
-                float vehicleDistance = lanes[vehicle.lane].path.GetClosestDistanceAlongPath(hit.transform.position);
+                vehicle = hit.collider.gameObject.GetComponent<Vehicle>();
+                float currentDistance = lanePaths[vehicle.lane].path.GetClosestDistanceAlongPath(transform.position);
+                float vehicleDistance = lanePaths[vehicle.lane].path.GetClosestDistanceAlongPath(hit.transform.position);
                 if (currentDistance >= vehicleDistance)
                 {
                     float distance = currentDistance - vehicleDistance;
@@ -148,13 +170,13 @@ public class Vehicle : MonoBehaviour
                 }
                 else
                 {
-                    float distance = lanes[lane].path.length - vehicleDistance + currentDistance;
+                    float distance = getCurrentPath().path.length - vehicleDistance + currentDistance;
                     distances[vehicle.lane].Add(distance);
                 }
             }
         }
 
-        for (int i = 0; i < lanes.Length; i++)
+        for (int i = 0; i < lanePaths.Length; i++)
         {
             distances[i].Sort();
         }
@@ -162,7 +184,7 @@ public class Vehicle : MonoBehaviour
         return distances;
     }
 
-    bool CanTurnLeft()
+    protected bool CanTurnLeft()
     {
         BoxCollider boxCollider = GetComponentInChildren<BoxCollider>();
         if (boxCollider == null)
@@ -191,7 +213,7 @@ public class Vehicle : MonoBehaviour
         }
     }
 
-    bool CanTurnRight()
+    protected bool CanTurnRight()
     {
         BoxCollider boxCollider = GetComponentInChildren<BoxCollider>();
         if (boxCollider == null)
@@ -222,42 +244,44 @@ public class Vehicle : MonoBehaviour
 
     void OnDrawGizmosSelected()
     {
-        // Front vision
-        for (float i = -(lookAheadAngle / 2); i <= (lookAheadAngle / 2); i += (lookAheadAngle / viewResolution) + 1)
+        if (visualizeVision)
         {
-            Quaternion rotation = Quaternion.AngleAxis(i, transform.up);
-            Vector3 ray = rotation * transform.forward;
-            Debug.DrawLine(transform.position, transform.position + ray * viewDistance, Color.red);
+            // Front vision
+            for (float i = -(lookAheadAngle / 2); i <= (lookAheadAngle / 2); i += (lookAheadAngle / viewResolution) + 1)
+            {
+                Quaternion rotation = Quaternion.AngleAxis(i, transform.up);
+                Vector3 ray = rotation * transform.forward;
+                Debug.DrawLine(transform.position, transform.position + ray * viewDistance, Color.red);
+            }
+
+            // Back vision
+            for (float i = -(lookBehindAngle / 2); i <= (lookBehindAngle / 2); i += (lookBehindAngle / viewResolution) + 1)
+            {
+                Quaternion rotation = Quaternion.AngleAxis(i + 180, transform.up);
+                Vector3 ray = rotation * transform.forward;
+                Debug.DrawLine(transform.position, transform.position + ray * viewDistance, Color.blue);
+            }
+
+            // lanePaths vision
+            BoxCollider boxCollider = GetComponentInChildren<BoxCollider>();
+            if (boxCollider != null)
+            {
+                Vector3 front = boxCollider.bounds.ClosestPoint(transform.position + transform.forward);
+                Quaternion aboutFace = Quaternion.AngleAxis(180, transform.up);
+                Vector3 back = boxCollider.bounds.ClosestPoint(transform.position + (aboutFace * transform.forward));
+                Vector3 leftDirection = Vector3.Cross(front - transform.position, Vector3.up);
+                Vector3 rightDirection = Vector3.Cross(-(front - transform.position), Vector3.up);
+
+                // Right lane
+                Debug.DrawLine(front, front + laneWidth * rightDirection, Color.yellow);
+                Debug.DrawLine(back, back + laneWidth * rightDirection, Color.yellow);
+                Debug.DrawLine(transform.position, transform.position + laneWidth * rightDirection, Color.yellow);
+
+                // Left lane
+                Debug.DrawLine(front, front + laneWidth * leftDirection, Color.yellow);
+                Debug.DrawLine(back, back + laneWidth * leftDirection, Color.yellow);
+                Debug.DrawLine(transform.position, transform.position + laneWidth * leftDirection, Color.yellow);
+            }
         }
-
-        // Back vision
-        for (float i = -(lookBehindAngle / 2); i <= (lookBehindAngle / 2); i += (lookBehindAngle / viewResolution) + 1)
-        {
-            Quaternion rotation = Quaternion.AngleAxis(i + 180, transform.up);
-            Vector3 ray = rotation * transform.forward;
-            Debug.DrawLine(transform.position, transform.position + ray * viewDistance, Color.blue);
-        }
-
-        // Lanes vision
-        BoxCollider boxCollider = GetComponentInChildren<BoxCollider>();
-        if (boxCollider != null)
-        {
-            Vector3 front = boxCollider.bounds.ClosestPoint(transform.position + transform.forward);
-            Quaternion aboutFace = Quaternion.AngleAxis(180, transform.up);
-            Vector3 back = boxCollider.bounds.ClosestPoint(transform.position + (aboutFace * transform.forward));
-            Vector3 leftDirection = Vector3.Cross(front - transform.position, Vector3.up);
-            Vector3 rightDirection = Vector3.Cross(-(front - transform.position), Vector3.up);
-
-            // Right lane
-            Debug.DrawLine(front, front + laneWidth * rightDirection, Color.yellow);
-            Debug.DrawLine(back, back + laneWidth * rightDirection, Color.yellow);
-            Debug.DrawLine(transform.position, transform.position + laneWidth * rightDirection, Color.yellow);
-
-            // Left lane
-            Debug.DrawLine(front, front + laneWidth * leftDirection, Color.yellow);
-            Debug.DrawLine(back, back + laneWidth * leftDirection, Color.yellow);
-            Debug.DrawLine(transform.position, transform.position + laneWidth * leftDirection, Color.yellow);
-        }
-
     }
 }
