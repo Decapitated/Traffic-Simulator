@@ -32,7 +32,7 @@ public class Vehicle : MonoBehaviour
     [SerializeField]
     private int lane = 0;
     [SerializeField]
-    public float distanceTraveled = 0;
+    private float distanceTraveled = 0;
     [SerializeField]
     private float acceleration = 0;
     [SerializeField]
@@ -40,7 +40,7 @@ public class Vehicle : MonoBehaviour
     [SerializeField]
     private bool visualizeVision = true;
 
-    protected PathCreator[] LanePathCreators() { return lanePathCreators; }
+    private PathCreator[] LanePathCreators() { return lanePathCreators; }
     protected float MaxAcceleration() { return maxAcceleration; }
     protected float MaxDeceleration() { return maxDeceleration; }
     protected float LookAheadAngle() { return lookAheadAngle; }
@@ -135,12 +135,11 @@ public class Vehicle : MonoBehaviour
 
     protected List<float> VehicleDistancesAhead(int lane)
     {
+        List<float> distances = new List<float>();
         if (LaneNullCheck(lane))
         {
-            return null;
+            return distances;
         }
-
-        List<float> distances = new List<float>();
 
         for (float i = -(lookAheadAngle / 2); i <= (lookAheadAngle / 2); i += lookAheadAngle / (viewResolution + 1))
         {
@@ -174,12 +173,11 @@ public class Vehicle : MonoBehaviour
 
     protected List<float> VehicleDistancesBehind(int lane)
     {
+        List<float> distances = new List<float>();
         if (LaneNullCheck(lane))
         {
-            return null;
+            return distances;
         }
-
-        List<float> distances = new List<float>();
 
         for (float i = -(lookBehindAngle / 2); i <= (lookBehindAngle / 2); i += lookBehindAngle / (viewResolution + 1))
         {

@@ -12,19 +12,17 @@ public class ExampleAI : Vehicle
     {
         base.Update();
 
-        // Accelerate if below speed limit else cap at speed limit
-        if (Speed() > speedLimit)
-        {
-            HitTheBrakes();
-        }
-        else if (Speed() < speedLimit)
+        if (Speed() <= speedLimit)
         {
             Acceleration(MaxAcceleration());
         }
+        else if (Speed() > speedLimit)
+        {
+            HitTheBrakes();
+        }
 
-        // Check if car is in front
-        List<float> distance = VehicleDistancesBehind(Lane());
-        if (distance.Count > 0)
+        List<float> distance = VehicleDistancesAhead(Lane());
+        if ((distance.Count > 0) && (Speed() > 0))
         {
             // Ramp breaks from Visibility() to Visibility()/2
             float brake = MaxDeceleration() * Mathf.Log(Visibility() / distance[0]);
