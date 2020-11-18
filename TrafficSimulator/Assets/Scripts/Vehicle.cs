@@ -214,8 +214,8 @@ public class Vehicle : MonoBehaviour
         BoxCollider boxCollider = GetComponentInChildren<BoxCollider>();
         Quaternion aboutFace = Quaternion.AngleAxis(180, transform.up);
 
-        Vector3 front = boxCollider.bounds.ClosestPoint(transform.position + transform.forward);
-        Vector3 back = boxCollider.bounds.ClosestPoint(transform.position + (aboutFace * transform.forward));
+        Vector3 front = transform.position + Vector3.Scale(transform.forward, boxCollider.bounds.extents);
+        Vector3 back = transform.position + (aboutFace * Vector3.Scale(transform.forward, boxCollider.bounds.extents));
         Vector3 middle = transform.position;
         Vector3 left = Vector3.Cross(front - transform.position, Vector3.up);
         if (
@@ -237,8 +237,8 @@ public class Vehicle : MonoBehaviour
         BoxCollider boxCollider = GetComponentInChildren<BoxCollider>();
         Quaternion aboutFace = Quaternion.AngleAxis(180, transform.up);
 
-        Vector3 front = boxCollider.bounds.ClosestPoint(transform.position + transform.forward);
-        Vector3 back = boxCollider.bounds.ClosestPoint(transform.position + (aboutFace * transform.forward));
+        Vector3 front = transform.position + Vector3.Scale(transform.forward, boxCollider.bounds.extents);
+        Vector3 back = transform.position + (aboutFace * Vector3.Scale(transform.forward, boxCollider.bounds.extents));
         Vector3 middle = transform.position;
         Vector3 right = Vector3.Cross(-(front - transform.position), Vector3.up);
         if (
@@ -255,7 +255,7 @@ public class Vehicle : MonoBehaviour
         }
     }
 
-    private void OnDrawGizmosSelected()
+    private void OnDrawGizmos()
     {
         if (visualizeVision)
         {
@@ -278,8 +278,8 @@ public class Vehicle : MonoBehaviour
             BoxCollider boxCollider = GetComponentInChildren<BoxCollider>();
             Quaternion aboutFace = Quaternion.AngleAxis(180, transform.up);
 
-            Vector3 front = boxCollider.bounds.ClosestPoint(transform.position + transform.forward);
-            Vector3 back = boxCollider.bounds.ClosestPoint(transform.position + (aboutFace * transform.forward));
+            Vector3 front = transform.position + (Vector3.Scale(transform.forward, boxCollider.bounds.extents));
+            Vector3 back = transform.position + (aboutFace * Vector3.Scale(transform.forward, boxCollider.bounds.extents));
             Vector3 middle = transform.position;
 
             Vector3 left = Vector3.Cross(front - transform.position, Vector3.up);
