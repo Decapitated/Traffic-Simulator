@@ -57,8 +57,8 @@ namespace PathCreation.Examples {
                 Vector3 localRight = (usePathNormals) ? path.GetNormal (i) : Vector3.Cross (localUp, path.GetTangent (i));
 
                 // Find position to left and right of current path vertex
-                Vector3 vertSideA = path.GetPoint (i) - localRight * Mathf.Abs (roadWidth);
-                Vector3 vertSideB = path.GetPoint (i) + localRight * Mathf.Abs (roadWidth);
+                Vector3 vertSideA = path.GetPoint (i) - localRight * Mathf.Abs (roadWidth / 2);
+                Vector3 vertSideB = path.GetPoint (i) + localRight * Mathf.Abs (roadWidth / 2);
 
                 // Add top of road vertices
                 verts[vertIndex + 0] = vertSideA;
