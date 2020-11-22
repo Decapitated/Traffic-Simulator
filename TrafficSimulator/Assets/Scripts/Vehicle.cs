@@ -255,14 +255,6 @@ public class Vehicle : MonoBehaviour
         }
     }
 
-    /*protected bool IsRedLight()
-    {
-        for (float i = -(lookAheadAngle / 2); i <= (lookAheadAngle / 2); i += lookAheadAngle / (viewResolution + 1))
-        {
-
-        }
-    }*/
-
     private void OnDrawGizmos()
     {
         if (visualizeVision)
