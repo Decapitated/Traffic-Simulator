@@ -133,7 +133,7 @@ public class Vehicle : MonoBehaviour
         return targetDist - thisDist;
     }
 
-    protected List<float> VehicleDistancesAhead(int lane)
+    protected List<float> ObjectsAhead(int lane, string layer)
     {
         List<float> distances = new List<float>();
         if (LaneNullCheck(lane))
@@ -147,7 +147,7 @@ public class Vehicle : MonoBehaviour
             Vector3 direction = rotation * transform.forward;
             RaycastHit hit;
             Vehicle hitVehicle;
-            if (Physics.Raycast(transform.position, direction, out hit, visibility, LayerMask.GetMask("Car")) &&
+            if (Physics.Raycast(transform.position, direction, out hit, visibility, LayerMask.GetMask(layer)) &&
                 ((hitVehicle = hit.collider.gameObject.GetComponentInParent<Vehicle>()) != null) &&
                 (hitVehicle.lane == lane)
             )

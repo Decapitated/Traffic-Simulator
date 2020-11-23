@@ -25,6 +25,8 @@ public class ExampleCar : Vehicle
             float degree = Mathf.Acos(angle) * Mathf.Rad2Deg;
 
             // We can see them
+            bool val = hit.transform.GetComponent<Vehicle>().Lane() == Lane();
+
             if (hit.transform.GetComponent<Vehicle>().Lane() == Lane() && (degree >= -fieldOfView || degree <= fieldOfView))
             {
                 float brake = MaxDeceleration() * Mathf.Log(viewDistance / GetVehicleDistance(hit.transform));
