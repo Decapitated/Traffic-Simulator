@@ -18,15 +18,13 @@ public class ExampleCar : Vehicle
 
         // Check if car is in front
         RaycastHit hit;
-        if (Physics.SphereCast(transform.position, viewDistance / 2, transform.forward, out hit, viewDistance / 2))
+        if (Physics.SphereCast(transform.position, viewDistance / 2, transform.forward, out hit, (viewDistance / 2), LayerMask.GetMask("Car")))
         {
             //find angle between my agent and the hit is it in my field of view
             float angle = Vector3.Dot(transform.forward, hit.point.normalized);
             float degree = Mathf.Acos(angle) * Mathf.Rad2Deg;
 
             // We can see them
-            bool val = hit.transform.GetComponent<Vehicle>().Lane() == Lane();
-
             if (hit.transform.GetComponent<Vehicle>().Lane() == Lane() && (degree >= -fieldOfView || degree <= fieldOfView))
             {
                 float brake = MaxDeceleration() * Mathf.Log(viewDistance / GetVehicleDistance(hit.transform));
