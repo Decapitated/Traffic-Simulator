@@ -9,6 +9,8 @@ using System;
 [RequireComponent(typeof(Collider))]
 public class Vehicle : MonoBehaviour
 {
+    private const int  approxPoints = 100;
+
     [SerializeField]
     private PathCreator[] lanePathCreators = new PathCreator[0];
     // approximate real life maximum acceleration, m/s/s
@@ -131,6 +133,30 @@ public class Vehicle : MonoBehaviour
         if (targetDist < thisDist) targetDist += CurrentPath().length;
 
         return targetDist - thisDist;
+    }
+
+    protected float TrafficControlDistance()
+    {
+        float distance = float.PositiveInfinity;
+        float step = CurrentPath().length / approxPoints;
+        Vector3 nextPoint = CurrentPath().GetPointAtDistance(DistanceTraveled());
+
+        for (float searchDistance = step; searchDistance <= CurrentPath().length; searchDistance += step)
+        {
+            Vector3 currentPoint = nextPoint;
+            nextPoint = CurrentPath().GetPointAtDistance(DistanceTraveled() + searchDistance);
+            Vector3 searchVec = nextPoint - currentPoint;
+
+            RaycastHit hit;
+            if (Physics.Raycast(currentPoint, searchVec, searchVec.magnitude, LayerMask.GetMask("SOPHIE PUT A LAYER HERE")))
+            {
+                distance = searchDistance;
+                Debug.Log("HAHA, I have found you! Approximately " + distance + " meters away");
+                break;
+            }
+        }
+
+        return distance;
     }
 
     protected List<float> ObjectsAhead(int lane, string layer)
