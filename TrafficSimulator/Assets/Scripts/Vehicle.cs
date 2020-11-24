@@ -147,7 +147,6 @@ public class Vehicle : MonoBehaviour
             nextPoint = CurrentPath().GetPointAtDistance(DistanceTraveled() + searchDistance);
             Vector3 searchVec = nextPoint - currentPoint;
 
-            RaycastHit hit;
             if (Physics.Raycast(currentPoint, searchVec, searchVec.magnitude, LayerMask.GetMask("SOPHIE PUT A LAYER HERE")))
             {
                 distance = searchDistance;
@@ -174,7 +173,7 @@ public class Vehicle : MonoBehaviour
             RaycastHit hit;
             Vehicle hitVehicle;
             if (Physics.Raycast(transform.position, direction, out hit, visibility, LayerMask.GetMask(layer)) &&
-                ((hitVehicle = hit.collider.gameObject.GetComponentInParent<Vehicle>()) != null) &&
+                (hit.collider.gameObject.transform.parent.TryGetComponent<Vehicle>(out hitVehicle)) &&
                 (hitVehicle.lane == lane)
             )
             {

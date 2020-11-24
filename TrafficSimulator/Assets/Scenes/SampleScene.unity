@@ -304,6 +304,24 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 0.041918803, y: 0.016218957, z: 0.021649476}
   m_Center: {x: 0.00043716907, y: -0.00045208752, z: -0.0000000023841857}
+--- !u!1 &351249524 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 100004, guid: b05466bd9959a49bbba0141119955dbd, type: 3}
+  m_PrefabInstance: {fileID: 1943810125}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &351249525
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 351249524}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 7.0337477, y: 4.9108505, z: 1.115738}
+  m_Center: {x: 2.067079, y: -1.9554253, z: -0.057868958}
 --- !u!1 &482679294
 GameObject:
   m_ObjectHideFlags: 0
@@ -1602,6 +1620,10 @@ PrefabInstance:
       value: 9
       objectReference: {fileID: 0}
     - target: {fileID: 400004, guid: b05466bd9959a49bbba0141119955dbd, type: 3}
+      propertyPath: m_RootOrder
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 400004, guid: b05466bd9959a49bbba0141119955dbd, type: 3}
       propertyPath: m_LocalPosition.x
       value: -27.07
       objectReference: {fileID: 0}
@@ -1614,24 +1636,20 @@ PrefabInstance:
       value: 25.33
       objectReference: {fileID: 0}
     - target: {fileID: 400004, guid: b05466bd9959a49bbba0141119955dbd, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 400004, guid: b05466bd9959a49bbba0141119955dbd, type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 400004, guid: b05466bd9959a49bbba0141119955dbd, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0.718752
+      value: 0.7071068
       objectReference: {fileID: 0}
     - target: {fileID: 400004, guid: b05466bd9959a49bbba0141119955dbd, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 400004, guid: b05466bd9959a49bbba0141119955dbd, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 0.69526654
-      objectReference: {fileID: 0}
-    - target: {fileID: 400004, guid: b05466bd9959a49bbba0141119955dbd, type: 3}
-      propertyPath: m_RootOrder
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 400004, guid: b05466bd9959a49bbba0141119955dbd, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -1639,10 +1657,22 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 400004, guid: b05466bd9959a49bbba0141119955dbd, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: 91.903
+      value: 90
       objectReference: {fileID: 0}
     - target: {fileID: 400004, guid: b05466bd9959a49bbba0141119955dbd, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 20500000, guid: b05466bd9959a49bbba0141119955dbd, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 20500000, guid: b05466bd9959a49bbba0141119955dbd, type: 3}
+      propertyPath: m_FadeMode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 20500000, guid: b05466bd9959a49bbba0141119955dbd, type: 3}
+      propertyPath: m_AnimateCrossFading
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -1661,7 +1691,7 @@ BoxCollider:
   m_GameObject: {fileID: 1943810126}
   m_Material: {fileID: 0}
   m_IsTrigger: 1
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 2
   m_Size: {x: 2.882014, y: 8.33513, z: 3.325434}
   m_Center: {x: 0.003418387, y: 0.006901741, z: -0.118392795}

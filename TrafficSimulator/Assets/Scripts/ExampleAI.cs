@@ -21,13 +21,13 @@ public class ExampleAI : Vehicle
             HitTheBrakes();
         }
 
-        //List<float> distance = ObjectsAhead(Lane(),"Car");
-        /*if ((distance.Count > 0) && (Speed() > 0))
+        List<float> distance = ObjectsAhead(Lane(),"Car");
+        if ((distance.Count > 0) && (Speed() > 0))
         {
             // Ramp breaks from Visibility() to Visibility()/2
             float brake = MaxDeceleration() * Mathf.Log(Visibility() / distance[0]);
             Acceleration(brake);
-        }*/
+        }
     }
 
 }
