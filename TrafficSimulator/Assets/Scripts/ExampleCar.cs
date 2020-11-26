@@ -16,6 +16,13 @@ public class ExampleCar : Vehicle
     {
         base.Update();
 
+        //Break before traffic light
+        float lightDistance = TrafficControlDistance();
+        if (lightDistance > 0 && lightDistance < 30)
+        {
+            Acceleration(MaxDeceleration() * Mathf.Log(viewDistance / lightDistance));
+        }
+
         // Check if car is in front
         RaycastHit hit;
         if (Physics.SphereCast(transform.position, viewDistance / 2, transform.forward, out hit, (viewDistance / 2), LayerMask.GetMask("Car")))
@@ -56,6 +63,7 @@ public class ExampleCar : Vehicle
         {
             SwitchLane(false);
         }
+
     }
 
     void OnDrawGizmos()

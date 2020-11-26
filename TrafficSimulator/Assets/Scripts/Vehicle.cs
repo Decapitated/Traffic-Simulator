@@ -147,10 +147,20 @@ public class Vehicle : MonoBehaviour
             nextPoint = CurrentPath().GetPointAtDistance(DistanceTraveled() + searchDistance);
             Vector3 searchVec = nextPoint - currentPoint;
 
-            if (Physics.Raycast(currentPoint, searchVec, searchVec.magnitude, LayerMask.GetMask("SOPHIE PUT A LAYER HERE")))
+            RaycastHit hit;
+            if (Physics.Raycast(currentPoint, searchVec, out hit, searchVec.magnitude, LayerMask.GetMask("Traffic")))
             {
-                distance = searchDistance;
-                Debug.Log("HAHA, I have found you! Approximately " + distance + " meters away");
+                if (hit.transform.gameObject.GetComponent<StopLight>().IsEnabled())
+                {
+                    distance = searchDistance;
+                    Debug.Log("HAHA, I have found you! Approximately " + distance + " meters away");
+                }
+                else
+                {
+                    Debug.Log("Ope! You're turned off!");
+                    distance = -1;
+                }
+
                 break;
             }
         }
