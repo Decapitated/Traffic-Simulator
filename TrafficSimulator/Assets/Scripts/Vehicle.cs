@@ -135,7 +135,7 @@ public class Vehicle : MonoBehaviour
         return targetDist - thisDist;
     }
 
-    protected float TrafficControlDistance()
+    protected float ActiveStopLightDistance()
     {
         float distance = float.PositiveInfinity;
         float step = CurrentPath().length / approxPoints;
@@ -153,14 +153,7 @@ public class Vehicle : MonoBehaviour
                 if (hit.transform.gameObject.GetComponent<StopLight>().IsEnabled())
                 {
                     distance = searchDistance;
-                    Debug.Log("HAHA, I have found you! Approximately " + distance + " meters away");
                 }
-                else
-                {
-                    Debug.Log("Ope! You're turned off!");
-                    distance = -1;
-                }
-
                 break;
             }
         }
@@ -168,7 +161,36 @@ public class Vehicle : MonoBehaviour
         return distance;
     }
 
-    protected List<float> ObjectsAhead(int lane, string layer)
+    protected List<StopLight> StopLightsOnPath()
+    {
+        List<StopLight> stopLights = new List<StopLight>();
+        float step = CurrentPath().length / approxPoints;
+        Vector3 nextPoint = CurrentPath().GetPointAtDistance(DistanceTraveled());
+
+        for (float searchDistance = step; searchDistance <= CurrentPath().length; searchDistance += step)
+        {
+            Vector3 currentPoint = nextPoint;
+            nextPoint = CurrentPath().GetPointAtDistance(DistanceTraveled() + searchDistance);
+            Vector3 searchVec = nextPoint - currentPoint;
+
+            RaycastHit hit;
+            if (Physics.Raycast(currentPoint, searchVec, out hit, searchVec.magnitude, LayerMask.GetMask("Traffic")))
+            {
+                if(hit.transform.gameObject.tag == "StopLight")
+                {
+                    StopLight stopLight = hit.transform.GetComponent<StopLight>();
+                    //If the path is a circle, don't count old stop lights
+                    if (stopLights.Contains(stopLight)) break;
+
+                    stopLights.Add(stopLight);
+                }
+            }
+        }
+
+        return stopLights;
+    }
+
+    protected List<float> VehicleDistancesAhead(int lane)
     {
         List<float> distances = new List<float>();
         if (LaneNullCheck(lane))
@@ -182,8 +204,8 @@ public class Vehicle : MonoBehaviour
             Vector3 direction = rotation * transform.forward;
             RaycastHit hit;
             Vehicle hitVehicle;
-            if (Physics.Raycast(transform.position, direction, out hit, visibility, LayerMask.GetMask(layer)) &&
-                (hit.collider.gameObject.transform.parent.TryGetComponent<Vehicle>(out hitVehicle)) &&
+            if (Physics.Raycast(transform.position, direction, out hit, visibility, LayerMask.GetMask("Car")) &&
+                ((hitVehicle = hit.collider.gameObject.GetComponentInParent<Vehicle>()) != null) &&
                 (hitVehicle.lane == lane)
             )
             {

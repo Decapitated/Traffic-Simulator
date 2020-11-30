@@ -21,7 +21,7 @@ public class ExampleAI : Vehicle
             HitTheBrakes();
         }
 
-        List<float> distance = ObjectsAhead(Lane(),"Car");
+        List<float> distance = VehicleDistancesAhead(Lane());
         if ((distance.Count > 0) && (Speed() > 0))
         {
             // Ramp breaks from Visibility() to Visibility()/2

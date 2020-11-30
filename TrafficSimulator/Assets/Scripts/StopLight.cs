@@ -4,10 +4,11 @@ using UnityEngine;
 
 public class StopLight : MonoBehaviour
 {
-    float STOP_TIME = 10f;
+    const float STOP_TIME = 10f;
 
     float timeTaken = 0;
 
+    [SerializeField]
     bool isEnabled = false;
 
     // Start is called before the first frame update
@@ -19,10 +20,12 @@ public class StopLight : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        timeTaken += Time.deltaTime / STOP_TIME;
-        if(timeTaken >= 1)
+        timeTaken += Time.deltaTime;
+        if (timeTaken >= STOP_TIME)
         {
-            timeTaken = 0;
+            //Get remainder and reset timeTaken
+            timeTaken -= STOP_TIME;
+
             isEnabled = !isEnabled;
         }
     }

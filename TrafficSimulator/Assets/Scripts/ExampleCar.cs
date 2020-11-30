@@ -17,11 +17,14 @@ public class ExampleCar : Vehicle
         base.Update();
 
         //Break before traffic light
-        float lightDistance = TrafficControlDistance();
+        float lightDistance = ActiveStopLightDistance();
         if (lightDistance > 0 && lightDistance < 30)
         {
             Acceleration(MaxDeceleration() * Mathf.Log(viewDistance / lightDistance));
         }
+
+        //See what stop lights are ahead
+        List<StopLight> stopLights = StopLightsOnPath();
 
         // Check if car is in front
         RaycastHit hit;
