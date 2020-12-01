@@ -9,6 +9,8 @@ using System;
 [RequireComponent(typeof(Collider))]
 public class Vehicle : MonoBehaviour
 {
+    private const int  approxPoints = 100;
+
     [SerializeField]
     private PathCreator[] lanePathCreators = new PathCreator[0];
     // approximate real life maximum acceleration, m/s/s
@@ -131,6 +133,61 @@ public class Vehicle : MonoBehaviour
         if (targetDist < thisDist) targetDist += CurrentPath().length;
 
         return targetDist - thisDist;
+    }
+
+    protected float ActiveStopLightDistance()
+    {
+        float distance = float.PositiveInfinity;
+        float step = CurrentPath().length / approxPoints;
+        Vector3 nextPoint = CurrentPath().GetPointAtDistance(DistanceTraveled());
+
+        for (float searchDistance = step; searchDistance <= CurrentPath().length; searchDistance += step)
+        {
+            Vector3 currentPoint = nextPoint;
+            nextPoint = CurrentPath().GetPointAtDistance(DistanceTraveled() + searchDistance);
+            Vector3 searchVec = nextPoint - currentPoint;
+
+            RaycastHit hit;
+            if (Physics.Raycast(currentPoint, searchVec, out hit, searchVec.magnitude, LayerMask.GetMask("Traffic")))
+            {
+                if (hit.transform.gameObject.GetComponent<StopLight>().IsEnabled())
+                {
+                    distance = searchDistance;
+                }
+                break;
+            }
+        }
+
+        return distance;
+    }
+
+    protected List<StopLight> StopLightsOnPath()
+    {
+        List<StopLight> stopLights = new List<StopLight>();
+        float step = CurrentPath().length / approxPoints;
+        Vector3 nextPoint = CurrentPath().GetPointAtDistance(DistanceTraveled());
+
+        for (float searchDistance = step; searchDistance <= CurrentPath().length; searchDistance += step)
+        {
+            Vector3 currentPoint = nextPoint;
+            nextPoint = CurrentPath().GetPointAtDistance(DistanceTraveled() + searchDistance);
+            Vector3 searchVec = nextPoint - currentPoint;
+
+            RaycastHit hit;
+            if (Physics.Raycast(currentPoint, searchVec, out hit, searchVec.magnitude, LayerMask.GetMask("Traffic")))
+            {
+                if(hit.transform.gameObject.tag == "StopLight")
+                {
+                    StopLight stopLight = hit.transform.GetComponent<StopLight>();
+                    //If the path is a circle, don't count old stop lights
+                    if (stopLights.Contains(stopLight)) break;
+
+                    stopLights.Add(stopLight);
+                }
+            }
+        }
+
+        return stopLights;
     }
 
     protected List<float> VehicleDistancesAhead(int lane)
