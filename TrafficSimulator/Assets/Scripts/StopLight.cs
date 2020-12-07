@@ -20,12 +20,14 @@ public class StopLight : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (isEnabled) Debug.Log("Stop Light: ON");
+        else Debug.Log("Stop Light: OFF");
         timeTaken += Time.deltaTime;
         if (timeTaken >= STOP_TIME)
         {
             //Get remainder and reset timeTaken
             timeTaken -= STOP_TIME;
-
+            
             isEnabled = !isEnabled;
         }
     }
