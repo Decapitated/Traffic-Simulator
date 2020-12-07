@@ -6,7 +6,7 @@ using PathCreation;
 using System;
 
 [RequireComponent(typeof(Rigidbody))]
-[RequireComponent(typeof(Collider))]
+//[RequireComponent(typeof(Collider))]
 public class Vehicle : MonoBehaviour
 {
     private const int  approxPoints = 100;
@@ -20,7 +20,8 @@ public class Vehicle : MonoBehaviour
     // approximate real life maximum breaking force, m/s/s
     [SerializeField]
     [Range(-37.75f, 0)]
-    private float maxDeceleration = -6f;
+    //private float maxDeceleration = -6f;
+    private float maxDeceleration = -37.75f;
     [SerializeField]
     private float lookAheadAngle = 170f;
     [SerializeField]
